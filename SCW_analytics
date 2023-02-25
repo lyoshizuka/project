@@ -1,0 +1,26 @@
+import streamlit as st
+import pandas as pd
+import numpy as np
+
+# Load CSV data into a Pandas DataFrame
+data = pd.read_csv(
+    '/Users/laurenyoshizuka/Library/Mobile Documents/com~apple~CloudDocs/2_ESSEC/Y2/BI/World situation case Original Source Data/DP_LIVE_12042018191422002.csv')
+
+# Display a title
+st.title('My CSV Dashboard')
+
+# Display the raw data
+st.subheader('Raw Data')
+st.write(data)
+
+# Display a histogram
+st.subheader('Histogram')
+column = st.selectbox('Select a column', data.columns)
+st.hist(data[column])
+
+# Display a bar chart
+st.subheader('Bar Chart')
+column1 = st.selectbox('Select a column for X-axis', data.columns)
+column2 = st.selectbox('Select a column for Y-axis', data.columns)
+chart_data = data[[column1, column2]]
+st.bar_chart(chart_data)
