@@ -1,16 +1,11 @@
 FROM python:3.7
 
 # Expose port you want your app on
-EXPOSE 8080
+WORKDIR /app
 
-# Upgrade pip and install requirements
-COPY requirements.txt requirements.txt
-RUN pip install -U pip
-RUN pip install -r requirements.txt
+COPY . /app
+RUN pip install --trusted-host pypi.python.org -r requirements.txt
 
-# Copy app code and set working directory
-COPY app.py app.py
-WORKDIR .
+EXPOSE 8501 
 
-# Run
-ENTRYPOINT [“streamlit”, “run”, “app.py”, “–server.port=8080”, “–server.address=0.0.0.0”]
+CMD ["streamlit", "run", "app.py"]
