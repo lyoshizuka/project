@@ -4,6 +4,8 @@ FROM python:3
 
 WORKDIR /app
 
+CMD ["python", "./k8s_dashboard.py"]
+
 RUN apt-get update && apt-get install -y \
     build-essential \
     curl \
