@@ -9,9 +9,7 @@ RUN pip install -U pip
 RUN pip install -r requirements.txt
 
 # Copy app code and set working directory
-COPY text_explorer text_explorer
 COPY app.py app.py
-COPY references references
 WORKDIR .
 
 # Run
