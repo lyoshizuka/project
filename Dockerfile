@@ -1,28 +1,18 @@
-# app/Dockerfile
+FROM python:3.7
 
-FROM ubuntu:latest
+# Expose port you want your app on
+EXPOSE 8080
 
-WORKDIR /app
+# Upgrade pip and install requirements
+COPY requirements.txt requirements.txt
+RUN pip install -U pip
+RUN pip install -r requirements.txt
 
-RUN apt-get update && apt-get install -y \
-    apt-utils \
-    # build-essentials \
-    curl \
-    python3-pip \
-    python3-yaml \
-    software-properties-common \
-    git \
+# Copy app code and set working directory
+COPY text_explorer text_explorer
+COPY app.py app.py
+COPY references references
+WORKDIR .
 
-    && rm -rf /var/lib/apt/lists/*
-
-RUN git clone https://github.com/lyoshizuka/project.git .
-
-RUN pip3 install -r requirements.txt
-
-RUN pip3 install --upgrade pip
-
-RUN pip3 install streamlit
-
-COPY / ./
-
-CMD ["streamlit","run","app.py"]
+# Run
+ENTRYPOINT [“streamlit”, “run”, “app.py”, “–server.port=8080”, “–server.address=0.0.0.0”]
