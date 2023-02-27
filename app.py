@@ -19,8 +19,8 @@ def main():
         # st.write(df)
     elif page == "Exploration":
         st.title("Data Exploration")
-        x_axis = st.selectbox("Choose a variable for the x-axis", data.columns, index=3)
-        y_axis = st.selectbox("Choose a variable for the y-axis", data.columns, index=4)
+        x_axis = st.selectbox("Choose a variable for the x-axis", data.columns, index=4)
+        y_axis = st.selectbox("Choose a variable for the y-axis", data.columns, index=5)
         visualize_data(data, x_axis, y_axis)
 
 
@@ -50,7 +50,7 @@ def visualize_data(data, x_axis, y_axis):
         x=x_axis,
         y=y_axis,
         color='offer_internal_name',
-        tooltip=['volume_type', 'offer_internal_name', 'volume_type1', 'storage_size']
+        tooltip=['volume_type', 'offer_internal_name', 'volume_type1', 'storage_size', 'nb_volumes']
     ).interactive().properties(width=800, height=800)
 
     st.write(graph)
