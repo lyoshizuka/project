@@ -5,5 +5,5 @@ numpy
 seaborn
 plotly
 streamlit_pandas_profiling
-matplotlib.pyplot
+matplotlib
 
