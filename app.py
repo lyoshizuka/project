@@ -2,6 +2,13 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import altair as alt
+from altair.expr import datum
+import pandas_profiling
+from streamlit_pandas_profiling import st_profile_report
+import plotly.figure_factory as ff
+import plotly.graph_objects as go
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 st.title('K8s dashboard, interim solution ')
 
@@ -19,9 +26,8 @@ def main():
         # st.write(df)
     elif page == "Exploration":
         st.title("Data Exploration")
-        x_axis = st.selectbox("Choose a variable for the x-axis", data.columns, index=4)
-        y_axis = st.selectbox("Choose a variable for the y-axis", data.columns, index=5)
-        visualize_data(data, x_axis, y_axis)
+        visualize_data(data)
+       
 
 
 @st.cache_data
@@ -43,26 +49,119 @@ if st.checkbox('Show raw data'):
     st.subheader('Raw data')
     st.write(data)
 
-def visualize_data(data, x_axis, y_axis):
-    st.subheader('Distributions')
-    alt.Chart(data).mark_bar().encode(
-        alt.X("volume_type", bin=True),
-        y='count()',
-    )
-    alt.Chart(data).mark_bar().encode(
-        alt.X("offer_internal_name", bin=True),
-        y='count()',
-    )
+
+def sort_offers(offer):
+    return offer.split('-')
+#offer_list= data(['offer_internal_name'])
+#offer_list.sort(key=sort_offers)
 
 
-    st.subheader('Kapsule users linked to Block storage')
+def visualize_data(data):
+    last_year = data[data.volume_creation_date > '2022-01-01 00:00:00']
+   # sizes=['MICRO','NANO','XXS','XS','S','M','L','XL']
+
+    st.subheader('Data summary report:')
+    report=data.profile_report(minimal=True, sensitive=True, duplicates=None, samples=None)
+    st_profile_report(report)
+
+    st.subheader('Categorical Variable Distributions')
+    storage = alt.Chart(data).mark_bar().encode(
+        x=alt.X('volume_type:N', sort='descending'),
+        y='count()'
+    ).properties(
+        title='Storage Type'
+    ).interactive()
+    storage
+    offers = alt.Chart(data).mark_bar().encode(
+        x=alt.X('offer_internal_name:N'),
+        y='count()'
+    ).properties(
+        title='Offer Type'
+    ).interactive()
+    offers
+
+    st.subheader('Most Popular Offer Configurations')
+    correlation = alt.Chart(data).mark_bar().encode(
+        x=alt.X('offer_internal_name:N', sort='-y'),
+        y='sum(nb_volumes)',
+        color=alt.Color('volume_type', type='nominal')
+        #row='offer_internal_name:N'
+    ).transform_window(
+        rank='rank(nb_volumes)',
+        sort=[alt.SortField('rank', order='descending')]
+    ).transform_filter(
+        (alt.datum.rank < 40 )
+    ).properties(
+        width=600, 
+        height=600
+    )
+    st.write(correlation)
+
+    st.subheader('Kapsule users linked to Block storage, MoM starting in 2022')
+    last_year = data[data.volume_creation_date > '2022-01-01 00:00:00']
+    graph1 = alt.Chart(last_year).encode(x='volume_creation_date:T').properties(
+        width=1000, 
+        height=800
+    ).transform_filter(datum.volume_type == 'b_ssd')
+    columns = sorted(data['offer_internal_name'].unique())
+    selection = alt.selection_single(
+        fields=['volume_creation_date'], nearest=True, on ='mouseover', empty='none', clear='mouseout'
+    )
+    
+    bars = graph1.mark_bar().encode(y='nb_volumes:Q', color='offer_internal_name:N')
+    points = bars.mark_point().transform_filter(selection)
+
+    rule = graph1.transform_pivot(
+        'offer_internal_name', value='nb_volumes', groupby=['volume_creation_date']
+    ).mark_rule().encode(
+        opacity=alt.condition(selection, alt.value(0.3), alt.value(0)),
+        tooltip=[alt.Tooltip(c, type='quantitative') for c in columns]
+    ).add_selection(selection)
+    bars+points+rule
+
+    st.subheader('Kapsule users linked to Local storage, MoM starting in 2022')
+    graph2 = alt.Chart(last_year).encode(x='volume_creation_date:T').properties(
+        width=1000, 
+        height=800
+    ).transform_filter(datum.volume_type == 'l_ssd')
+    columns = sorted(data['offer_internal_name'].unique())
+    selection = alt.selection_single(
+        fields=['volume_creation_date'], nearest=True, on ='mouseover', empty='none', clear='mouseout'
+    )
+    
+    bars = graph2.mark_bar().encode(y='nb_volumes:Q', color='offer_internal_name:N')
+    points = bars.mark_point().transform_filter(selection)
+
+    rule = graph2.transform_pivot(
+        'offer_internal_name', value='nb_volumes', groupby=['volume_creation_date']
+    ).mark_rule().encode(
+        opacity=alt.condition(selection, alt.value(0.3), alt.value(0)),
+        tooltip=[alt.Tooltip(c, type='quantitative') for c in columns]
+    ).add_selection(selection)
+    bars+points+rule
+
+    st.subheader('Kapsule volumes by Instance offer & storage type')
+    select=alt.selection_single(fields=['offer_internal_name'],on='mouseover', nearest=True,empty='none', clear='mouseout')
     graph = alt.Chart(data).mark_bar().encode(
-        x=x_axis,
-        y=y_axis,
-        color='offer_internal_name',
-        tooltip=['volume_type', 'offer_internal_name', 'volume_type1', 'storage_size', 'nb_volumes', 'volume_creation_date']
-    ).interactive().properties(width=800, height=800)
-    st.write(graph)
+        x='offer_internal_name',
+        y='sum(nb_volumes)',
+        color=alt.Color('volume_type', type='nominal'),
+        tooltip=['volume_type', 'offer_internal_name'],
+        order=alt.Order('offer_internal_name', sort='ascending')
+    ).properties(
+        width=800, 
+        height=800
+    ).interactive()
+
+    text = alt.Chart(data).mark_text(color='black', baseline='middle', angle=270).encode(
+        x=alt.X('offer_internal_name:N'),
+        y=alt.Y('sum(nb_volumes):Q', stack='zero'),
+        detail='volume_type:N',
+        #text=alt.Text('sum(nb_volumes):Q', band=0.5)
+    ).add_selection(select)
+    graph + text
+
+  
 
 
 
