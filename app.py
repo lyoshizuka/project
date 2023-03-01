@@ -25,9 +25,9 @@ def main():
 
 
 @st.cache_data
-def load_data(nrows):
+def load_data():
     df = pd.read_csv(
-        'Block_Storage_linked_to_kapsule_servers_2023_02_16 - [PAR1]_Block_Storage_linked_to_kapsule_servers_2023_02_16.csv', nrows=nrows)
+        'Block_Storage_linked_to_kapsule_servers_2023_02_16 - [PAR1]_Block_Storage_linked_to_kapsule_servers_2023_02_16.csv')
 
     def lowercase(x): return str(x).lower()
     df.rename(lowercase, axis='columns', inplace=True)
@@ -36,24 +36,34 @@ def load_data(nrows):
 
 
 data_load_state = st.text('Loading data...')
-data = load_data(10000)
+data = load_data()
 data_load_state.text("Data loaded successfully! (using st.cache_data)")
 
 if st.checkbox('Show raw data'):
     st.subheader('Raw data')
     st.write(data)
 
-
 def visualize_data(data, x_axis, y_axis):
-    st.subheader('Number of Kapsule users linked to Block storage')
+    st.subheader('Distributions')
+    alt.Chart(data).mark_bar().encode(
+        alt.X("volume_type", bin=True),
+        y='count()',
+    )
+    alt.Chart(data).mark_bar().encode(
+        alt.X("offer_internal_name", bin=True),
+        y='count()',
+    )
+
+
+    st.subheader('Kapsule users linked to Block storage')
     graph = alt.Chart(data).mark_bar().encode(
         x=x_axis,
         y=y_axis,
         color='offer_internal_name',
-        tooltip=['volume_type', 'offer_internal_name', 'volume_type1', 'storage_size', 'nb_volumes']
+        tooltip=['volume_type', 'offer_internal_name', 'volume_type1', 'storage_size', 'nb_volumes', 'volume_creation_date']
     ).interactive().properties(width=800, height=800)
-
     st.write(graph)
+
 
 
 if __name__ == "__main__":
