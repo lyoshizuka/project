@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 import altair as alt
 from altair.expr import datum
-
+import pandas_profiling
 from streamlit_pandas_profiling import st_profile_report
 import plotly.figure_factory as ff
 import plotly.graph_objects as go

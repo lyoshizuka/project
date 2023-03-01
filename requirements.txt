@@ -3,6 +3,7 @@ altair
 pandas
 numpy
 seaborn
+pandas_profiling
 plotly
 streamlit_pandas_profiling
 matplotlib
