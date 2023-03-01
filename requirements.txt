@@ -2,3 +2,8 @@ streamlit
 altair
 pandas
 numpy
+seaborn
+plotly
+streamlit_pandas_profiling
+matplotlib.pyplot
+
