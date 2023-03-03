@@ -76,7 +76,7 @@ def visualize_data(data):
 
     st.subheader('Most Popular Offer Configurations')
     correlation = alt.Chart(data).mark_bar().encode(
-        x=alt.X('offer_internal_name:N'),
+        x=alt.X('offer_internal_name:N', sort='-y'),
         y='sum(nb_volumes)',
         color=alt.Color('volume_type', type='nominal')
         #row='offer_internal_name:N'
