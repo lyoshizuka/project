@@ -3,8 +3,6 @@ import pandas as pd
 import numpy as np
 import altair as alt
 from altair.expr import datum
-import pandas_profiling
-from streamlit_pandas_profiling import st_profile_report
 import plotly.figure_factory as ff
 import plotly.graph_objects as go
 import matplotlib.pyplot as plt
@@ -60,10 +58,6 @@ def visualize_data(data):
     last_year = data[data.volume_creation_date > '2022-01-01 00:00:00']
    # sizes=['MICRO','NANO','XXS','XS','S','M','L','XL']
 
-    st.subheader('Data summary report:')
-    report=data.profile_report(minimal=True, sensitive=True, duplicates=None, samples=None)
-    st_profile_report(report)
-
     st.subheader('Categorical Variable Distributions')
     storage = alt.Chart(data).mark_bar().encode(
         x=alt.X('volume_type:N', sort='descending'),
@@ -82,7 +76,7 @@ def visualize_data(data):
 
     st.subheader('Most Popular Offer Configurations')
     correlation = alt.Chart(data).mark_bar().encode(
-        x=alt.X('offer_internal_name:N', sort='-y'),
+        x=alt.X('offer_internal_name:N'),
         y='sum(nb_volumes)',
         color=alt.Color('volume_type', type='nominal')
         #row='offer_internal_name:N'
