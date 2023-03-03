@@ -74,23 +74,6 @@ def visualize_data(data):
     ).interactive()
     offers
 
-    st.subheader('Most Popular Offer Configurations')
-    correlation = alt.Chart(data).mark_bar().encode(
-        x=alt.X('offer_internal_name:N', sort='y'),
-        y='volumes_rank:Q',
-        color=alt.Color('volume_type', type='nominal')
-        #row='offer_internal_name:N'
-    ).transform_aggregate(
-        volumes_rank='sum(nb_volumes)',
-        groupby=['offer_internal_name']
-    ).transform_filter(
-        (alt.datum.rank < 40 )
-    ).properties(
-        width=600, 
-        height=600
-    )
-    st.write(correlation)
-
     st.subheader('Kapsule users linked to Block storage, MoM starting in 2022')
     last_year = data[data.volume_creation_date > '2022-01-01 00:00:00']
     graph1 = alt.Chart(last_year).encode(x='volume_creation_date:T').properties(
