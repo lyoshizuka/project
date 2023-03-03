@@ -77,12 +77,12 @@ def visualize_data(data):
     st.subheader('Most Popular Offer Configurations')
     correlation = alt.Chart(data).mark_bar().encode(
         x=alt.X('offer_internal_name:N', sort='y'),
-        y='sum(nb_volumes)',
+        y='volumes_rank:Q',
         color=alt.Color('volume_type', type='nominal')
         #row='offer_internal_name:N'
-    ).transform_window(
-        rank='rank(nb_volumes)',
-        sort=[alt.SortField('rank', order='descending')]
+    ).transform_aggregate(
+        volumes_rank='sum(nb_volumes)',
+        groupby=['offer_internal_name']
     ).transform_filter(
         (alt.datum.rank < 40 )
     ).properties(
